@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=61a856ae-a981-4413-9b9e-89b6f71be633
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gamuda Central Park 360°</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Montserrat:wght@700;800&display=swap">
+<style>
+/* Layout: full-bleed 360 viewer; brand chip top-left, tool rail right, view switch bottom-centre, legend drawer bottom-left. Single dark look. */
+:root{
+  --ink:#0d0f12;          /* page ground behind the panorama */
+  --glass:rgba(16,18,22,.62);
+  --glass-hi:rgba(28,31,37,.82);
+  --line:rgba(255,255,255,.14);
+  --fg:#f4f2ef;
+  --muted:#b9b5b0;
+  --brand:#c0272d;        /* Mai Việt Land red */
+  --brand-soft:#e2474d;
+  --steel:#8a8a8a;        /* Mai Việt Land grey */
+  --road-main:#f5b83d;    /* Vành Đai 3 */
+  --road-link:#ff6b6b;    /* đường kết nối */
+  --font-display:"Montserrat","Be Vietnam Pro",system-ui,sans-serif;
+  --font-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--ink);color:var(--fg);font-family:var(--font-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{position:fixed;inset:0}
+#pano{position:absolute;inset:0}
+
+/* --- trimmed Pannellum 2.5.6 core styles (MIT) --- */
+.pnlm-container{margin:0;padding:0;overflow:hidden;position:relative;cursor:default;width:100%;height:100%;background:var(--ink);user-select:none;outline:0;line-height:1.4;contain:content;font-family:var(--font-body)}
+.pnlm-container *{box-sizing:content-box}
+.pnlm-ui{position:absolute;width:100%;height:100%;z-index:1}
+.pnlm-grab{cursor:grab}.pnlm-grabbing{cursor:grabbing}
+.pnlm-render-container{cursor:inherit;position:absolute;height:100%;width:100%}
+.pnlm-controls-container,.pnlm-load-box,.pnlm-load-button,.pnlm-info-box,.pnlm-error-msg,.pnlm-about-msg,.pnlm-panorama-info,.pnlm-compass,.pnlm-hot-spot-debug-indicator{display:none!important}
+.pnlm-hotspot-base{position:absolute;visibility:hidden;cursor:default;vertical-align:middle;top:0;z-index:3}
+.pnlm-world{position:absolute;left:50%;top:50%}
+.pnlm-face{position:absolute;transform-origin:0 0}
+.pnlm-dragfix,.pnlm-preview-img{position:absolute;height:100%;width:100%}
+.pnlm-preview-img{background-size:cover;background-position:center}
+.pnlm-fade-img{position:absolute;top:0;left:0}
+.pnlm-pointer{cursor:pointer}
+
+/* --- road overlay --- */
+#roads{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+#roads .casing{fill:none;stroke:rgba(0,0,0,.55);stroke-linecap:round;stroke-linejoin:round}
+#roads .core{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#roads .flow{fill:none;stroke:#fff;stroke-linecap:round;stroke-dasharray:2 22;animation:flow 1.6s linear infinite;opacity:.9}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.road-tag{position:absolute;z-index:3;transform:translate(-50%,-50%);pointer-events:none;display:flex;align-items:center;gap:7px;padding:5px 11px 5px 6px;border-radius:999px;background:var(--glass-hi);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:600 12.5px/1.2 var(--font-body);white-space:nowrap;letter-spacing:.01em;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.road-tag i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;font-style:normal;font:800 9px/1 var(--font-display);color:#16130c}
+.road-tag.dir{font-weight:500;font-size:11.5px;color:var(--muted);padding:4px 10px;background:rgba(10,12,15,.55)}
+.road-tag.dir b{color:var(--fg);font-weight:600}
+
+/* --- POI pins --- */
+.pnlm-hotspot-base.poi{width:0;height:0}
+.pin{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,calc(-100% + 5px));cursor:pointer}
+.pin .lab{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--brand);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);white-space:nowrap;font:600 13px/1.2 var(--font-body);color:var(--fg);box-shadow:0 8px 22px rgba(0,0,0,.4);transition:transform .2s,background .2s}
+.pin .ico{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--brand);flex:none}
+.pin .ico svg{width:14px;height:14px}
+.pin .stem{width:2px;height:26px;background:#fff;box-shadow:0 0 5px rgba(0,0,0,.7)}
+.pin .dot{width:10px;height:10px;border-radius:50%;background:var(--brand-soft);box-shadow:0 0 0 4px rgba(226,71,77,.35);animation:ping 2.4s ease-out infinite}
+.pin:hover .lab,.pin:focus-visible .lab{transform:translateY(-2px);background:var(--brand-soft)}
+.pin.project .lab{background:var(--brand);border-color:rgba(255,255,255,.35);font-family:var(--font-display);font-weight:800;letter-spacing:.02em;font-size:14px}
+.pin.project .ico{background:#fff;color:var(--brand)}
+.pin .sub{display:block;font:500 10.5px/1.2 var(--font-body);color:rgba(255,255,255,.78);margin-top:2px}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;display:none}
+body.night .pin .lab{box-shadow:0 8px 22px rgba(0,0,0,.6),0 0 18px rgba(255,200,120,.12)}
+.pin.project .dot{background:var(--brand-soft);box-shadow:0 0 0 5px rgba(226,71,77,.35)}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}100%{box-shadow:0 0 0 14px rgba(255,255,255,0)}}
+
+/* --- chrome --- */
+.chrome{position:absolute;z-index:10}
+.brand{top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;max-width:calc(100% - 100px)}
+.brand .chip{flex:none;width:74px;height:58px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.brand .chip img{width:62px;height:auto;display:block}
+.brand h1{margin:0;font:800 clamp(20px,3.2vw,30px)/1.05 var(--font-display);letter-spacing:-.01em;text-shadow:0 2px 14px rgba(0,0,0,.55);text-wrap:balance}
+.brand p{margin:4px 0 0;font:500 13px/1.35 var(--font-body);color:#e9e6e2;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.brand p b{color:#fff;font-weight:600}
+
+.rail{top:calc(14px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.rbtn{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--fg);display:grid;place-items:center;cursor:pointer;transition:background .2s,transform .15s;position:relative}
+.rbtn svg{width:20px;height:20px}
+.rbtn:hover{background:var(--glass-hi)}
+.rbtn:active{transform:scale(.94)}
+.rbtn[aria-pressed="true"]{background:var(--brand);border-color:rgba(255,255,255,.3)}
+.rbtn:focus-visible,.seg button:focus-visible,.legend button:focus-visible,.pin:focus-visible,.start:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.rbtn .eq{position:absolute;inset:auto 0 7px;display:flex;justify-content:center;gap:2px;height:6px;align-items:flex-end;opacity:0}
+.rbtn[aria-pressed="true"] .eq{opacity:1}
+.rbtn .eq span{width:2px;background:#fff;border-radius:1px;animation:eq 1s ease-in-out infinite}
+.rbtn .eq span:nth-child(2){animation-delay:.25s}.rbtn .eq span:nth-child(3){animation-delay:.5s}
+@keyframes eq{0%,100%{height:2px}50%{height:6px}}
+
+.seg{left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;padding:5px;gap:4px;border-radius:999px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.seg button{border:0;cursor:pointer;border-radius:999px;padding:10px 18px;font:600 13.5px/1 var(--font-body);color:var(--muted);background:transparent;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.seg button svg{width:16px;height:16px}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+
+.legend{left:max(16px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:260px;max-width:calc(100% - 32px);border-radius:16px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden}
+.legend summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font:700 12px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary svg{width:14px;height:14px;transition:transform .2s}
+.legend[open] summary svg{transform:rotate(180deg)}
+.legend .body{padding:0 8px 10px;display:grid;gap:2px;max-height:min(52vh,420px);overflow:auto}
+.legend h3{margin:8px 6px 4px;font:600 10.5px/1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.legend button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:var(--fg);font:500 13px/1.3 var(--font-body);padding:7px 6px;border-radius:9px;cursor:pointer}
+.legend button:hover{background:rgba(255,255,255,.08)}
+.legend .sw{flex:none;width:22px;height:5px;border-radius:3px}
+.legend .pd{flex:none;width:9px;height:9px;border-radius:50%;background:var(--brand-soft);margin:0 6px 0 7px}
+.legend .pd.brand{background:var(--brand-soft)}
+.legend .note{margin:8px 6px 2px;font-size:11px;line-height:1.45;color:var(--muted)}
+
+.hint{right:max(16px,env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));font:500 12px/1.35 var(--font-body);color:#ddd9d4;text-shadow:0 1px 8px rgba(0,0,0,.8);max-width:220px;text-align:right}
+
+/* --- intro --- */
+.intro{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%,rgba(13,15,18,.35),rgba(13,15,18,.86));transition:opacity .6s ease,visibility .6s;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.intro.gone{opacity:0;visibility:hidden}
+.intro .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;max-width:440px}
+.intro .logo{width:132px;padding:12px 14px;border-radius:20px;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.intro .logo img{display:block;width:100%}
+.intro .eyebrow{font:600 11.5px/1 var(--font-body);letter-spacing:.22em;text-transform:uppercase;color:#f0c2c4}
+.intro h2{margin:0;font:800 clamp(30px,6vw,48px)/1 var(--font-display);letter-spacing:-.015em;text-wrap:balance}
+.intro p{margin:0;color:#dcd8d3;font-size:14.5px;line-height:1.55;max-width:38ch}
+.start{margin-top:6px;border:0;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 24px;border-radius:999px;background:var(--brand);color:#fff;font:700 14.5px/1 var(--font-body);box-shadow:0 12px 30px rgba(192,39,45,.45);transition:transform .15s,background .2s}
+.start:hover{background:var(--brand-soft)}.start:active{transform:scale(.97)}
+.start svg{width:18px;height:18px}
+.intro small{color:var(--muted);font-size:12px}
+
+@media (max-width:640px){
+  .brand .chip{width:56px;height:44px;border-radius:11px}.brand .chip img{width:46px}
+  .brand p{font-size:12px}
+  .hint{display:none}
+  .seg{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+  .seg button{padding:9px 10px;font-size:12px;gap:6px}
+  .seg button svg{width:14px;height:14px}
+  .legend{width:auto;right:max(16px,env(safe-area-inset-right,0px))}
+  .legend:not([open]){right:auto}
+  .rbtn{width:42px;height:42px}
+  .pin .lab{font-size:12px;padding:5px 10px 5px 5px}.pin .ico{width:20px;height:20px}
+  .road-tag{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  #fx{opacity:.85}
+  #roads .flow,.pin .dot,.rbtn .eq span{animation:none}
+  .intro{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="pano" aria-label="Ảnh 360° dự án Gamuda Central Park"></div>
+
+  <header class="chrome brand">
+    <div class="chip"><img src="logo.png" alt="Mai Việt Land"></div>
+    <div>
+      <h1>Gamuda Central Park</h1>
+      <p><b>Mai Việt Land</b> · Toàn cảnh 360° khu Yên Sở, Hà Nội</p>
+    </div>
+  </header>
+
+  <nav class="chrome rail" aria-label="Điều khiển">
+    <button class="rbtn" id="btnMusic" aria-pressed="false" title="Bật / tắt nhạc nền" aria-label="Bật hoặc tắt nhạc nền">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="rbtn" id="btnRotate" aria-pressed="true" title="Tự động xoay" aria-label="Bật hoặc tắt tự động xoay">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+    </button>
+    <button class="rbtn" id="btnFull" aria-pressed="false" title="Toàn màn hình" aria-label="Toàn màn hình">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+    </button>
+  </nav>
+
+  <div class="chrome seg" role="group" aria-label="Chế độ xem">
+    <button id="vDay" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Toàn cảnh
+    </button>
+    <button id="vPlan" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      Mặt bằng chi tiết
+    </button>
+    <button id="vNight" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      Về đêm
+    </button>
+  </div>
+
+  <details class="chrome legend" id="legend" open>
+    <summary>Vị trí &amp; kết nối <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></summary>
+    <div class="body" id="legendBody"></div>
+  </details>
+
+  <p class="chrome hint">Kéo để xoay · cuộn hoặc chụm hai ngón để phóng to · bấm “Về đêm” để xem pháo hoa trên hồ Yên Sở</p>
+
+  <div class="intro" id="intro">
+    <div class="card">
+      <div class="logo"><img src="logo.png" alt="Mai Việt Land"></div>
+      <span class="eyebrow">Tham quan thực tế ảo 360°</span>
+      <h2>Gamuda Central Park</h2>
+      <p>Bay trên khu Yên Sở, nhìn trọn mặt bằng dự án, hồ sinh thái và các tuyến Vành Đai 3, Pháp Vân – Cầu Giẽ xung quanh — ngày và đêm có pháo hoa trên hồ Yên Sở.</p>
+      <button class="start" id="btnStart">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Bắt đầu tham quan
+      </button>
+      <small>Có nhạc nền · bấm biểu tượng nốt nhạc để tắt</small>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
+<script>
+(function(){
+  /* ---------- data: yaw / pitch in degrees on the panorama ---------- */
+  const ICONS={
+    lake:'<path d="M2 8c.6.5 1.2 1 2.5 1C7 9 7 7 9.5 7c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 14c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+    bus:'<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
+    city:'<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    road:'<path d="M4 21 9 3"/><path d="M20 21 15 3"/><path d="M12 4v2"/><path d="M12 10v3"/><path d="M12 17v3"/>',
+    tree:'<path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/>',
+    shop:'<path d="m2 7 4.4-4.4A2 2 0 0 1 7.8 2h8.4a2 2 0 0 1 1.4.6L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+    golf:'<path d="M12 18V3l7 3.5-7 3.5"/><path d="M5 18.5c1.8 1.2 4.3 1.8 7 1.8s5.2-.6 7-1.8"/><path d="M8.5 14.6C6.4 15.2 5 16.1 5 17.1"/>',
+    star:'<path d="M12 2 15 8.9l7.5.7-5.7 5 1.7 7.4L12 18.3 5.5 22l1.7-7.4-5.7-5 7.5-.7z"/>'
+  };
+  const POIS=[
+    {id:'golf',title:'Sân tập golf mặt nước',yaw:73.6,pitch:-44.6,icon:'golf',cls:'golf'},
+    {id:'lake',title:'Hồ Sinh Thái Gamuda City',yaw:135,pitch:-49,icon:'lake'},
+    {id:'vpbh',title:'Văn phòng bán hàng',yaw:160.57,pitch:-38.57,icon:'shop'},
+    {id:'congvien',title:'Công viên Yên Sở',yaw:115.21,pitch:-20.27,icon:'tree'},
+    {id:'phapvan',title:'Đường gom Pháp Vân – Cầu Giẽ',yaw:118.39,pitch:-8.53,icon:'road'},
+    {id:'linhdam',title:'Khu đô thị Linh Đàm',yaw:98.56,pitch:-1.4,icon:'city'},
+    {id:'benxe',title:'Bến xe khách Yên Sở',yaw:-141,pitch:-27.5,icon:'bus'}
+  ];
+  const ROADS=[
+    {id:'vd3',name:'Vành Đai 3',code:'VĐ3',color:'var(--road-main)',hex:'#f5b83d',width:7,
+     pts:[[111,-5.5],[115,-6.6],[119,-8],[124,-10],[130,-14],[137,-16.8],[144,-19.2],[151,-21.3],[158,-23.2],[166,-25],[173,-26.5],[180,-27.5],[-176,-27.6],[-171,-27.3],[-164,-26.4],[-156,-25.3],[-149,-24],[-141,-22.4],[-134,-20.4],[-127,-18.3],[-122,-16],[-119,-14],[-115,-11],[-113,-8.5],[-111,-6]],
+     tags:[[148,-20.4],[-160,-25.9]],
+     ends:[{at:[126,-11.2],text:'Hướng <b>Pháp Vân</b>'},{at:[-117,-12.5],text:'Hướng <b>cầu Thanh Trì</b>'}]},
+    {id:'conn',name:'Đường kết nối Vành Đai 3',code:'→',color:'var(--road-link)',hex:'#ff6b6b',width:5,
+     pts:[[-158,-27.5],[-157,-31],[-156,-34],[-153,-37],[-148,-40],[-141,-44],[-133,-48.5],[-122,-54],[-110,-57],[-98,-58.5],[-88,-58.5],[-80,-57.5]],
+     tags:[[-130,-50]],ends:[]}
+  ];
+
+  const $=s=>document.querySelector(s);
+  const svgIcon=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg>';
+
+  /* ---------- viewer ---------- */
+  function pinTooltip(div,p){
+    const pin=document.createElement('span'); pin.className='pin'+(p.project?' project':'')+(p.cls?' '+p.cls:'');
+    pin.tabIndex=0; pin.setAttribute('role','button'); pin.setAttribute('aria-label',p.title);
+    pin.innerHTML='<span class="lab"><span class="ico">'+svgIcon(p.icon)+'</span>'+p.title+'</span><span class="stem"></span><span class="dot"></span>';
+    pin.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flyTo(p);}});
+    div.appendChild(pin);
+  }
+  const hotSpots=POIS.map(p=>({id:p.id,pitch:p.pitch,yaw:p.yaw,cssClass:'poi',createTooltipFunc:pinTooltip,createTooltipArgs:p,clickHandlerFunc:()=>flyTo(p)}));
+  const face=i=>'pano/plan_'+i+'.jpg';
+  const viewer=pannellum.viewer('pano',{
+    default:{firstScene:'plan',sceneFadeDuration:800,autoLoad:true,showControls:false,compass:false,
+      yaw:40,pitch:-18,hfov:100,minHfov:30,maxHfov:120,autoRotate:-2,autoRotateInactivityDelay:6000,
+      keyboardZoom:true,mouseZoom:true,friction:.15},
+    scenes:{
+      plan:{type:'cubemap',cubeMap:[face(0),face(1),face(2),face(3),face(4),face(5)],hotSpots},
+      day:{type:'cubemap',cubeMap:[face(0),face(1),face(2),face(3),face(4),'pano/day_5.jpg'],hotSpots},
+      night:{type:'cubemap',cubeMap:[0,1,2,3,4,5].map(i=>'pano/night_'+i+'.jpg'),hotSpots}
+    }
+  });
+  function flyTo(p){viewer.stopAutoRotate();setRotate(false);viewer.lookAt(p.pitch,p.yaw,p.project?90:70,1200);}
+
+  /* ---------- road overlay (projected every frame) ---------- */
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg'); svg.id='roads';
+  const tagLayer=document.createElement('div'); tagLayer.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:3';
+  const roadEls=ROADS.map(r=>{
+    const g=document.createElementNS(NS,'g');
+    const mk=(cls,w)=>{const el=document.createElementNS(NS,'path');el.setAttribute('class',cls);el.setAttribute('stroke-width',w);g.appendChild(el);return el;};
+    const casing=mk('casing',r.width+5), core=mk('core',r.width), flow=mk('flow',Math.max(2,r.width-4));
+    core.style.stroke=r.color; svg.appendChild(g);
+    const tags=r.tags.map(()=>{const t=document.createElement('div');t.className='road-tag';t.innerHTML='<i style="background:'+r.hex+'">'+r.code+'</i>'+r.name;tagLayer.appendChild(t);return t;});
+    const ends=r.ends.map(e=>{const t=document.createElement('div');t.className='road-tag dir';t.innerHTML=e.text;tagLayer.appendChild(t);return t;});
+    return {r,paths:[casing,core,flow],tags,ends};
+  });
+  let roadsOn=false;
+  const D=Math.PI/180;
+  function camera(){
+    const c=viewer.getContainer(), W=c.clientWidth, H=c.clientHeight;
+    const yv=viewer.getYaw()*D, pv=viewer.getPitch()*D, f=(W/2)/Math.tan(viewer.getHfov()*D/2);
+    return {W,H,f,cy:Math.cos(yv),sy:Math.sin(yv),cp:Math.cos(pv),sp:Math.sin(pv)};
+  }
+  function toCam(cam,yaw,pitch){
+    const y=yaw*D,p=pitch*D, x=Math.cos(p)*Math.sin(y), Y=Math.sin(p), z=Math.cos(p)*Math.cos(y);
+    const x2=x*cam.cy-z*cam.sy, z2=x*cam.sy+z*cam.cy;
+    return [x2, Y*cam.cp-z2*cam.sp, Y*cam.sp+z2*cam.cp];
+  }
+  const scr=(cam,v)=>[cam.W/2+cam.f*v[0]/v[2], cam.H/2-cam.f*v[1]/v[2]];
+  const NEAR=0.08;
+  function densify(pts){ // add midpoints so long segments bend correctly on the sphere
+    const out=[];
+    for(let i=0;i<pts.length-1;i++){
+      let [a1,b1]=pts[i],[a2,b2]=pts[i+1]; let d=a2-a1; if(d>180)d-=360; if(d<-180)d+=360;
+      const n=Math.max(1,Math.ceil(Math.max(Math.abs(d),Math.abs(b2-b1))/1.5));
+      for(let k=0;k<n;k++) out.push([a1+d*k/n,b1+(b2-b1)*k/n]);
+    }
+    out.push(pts[pts.length-1]); return out;
+  }
+  ROADS.forEach(r=>r.dense=densify(r.pts));
+  function placeTag(el,cam,yaw,pitch){
+    const v=toCam(cam,yaw,pitch);
+    if(v[2]<0.25){el.style.visibility='hidden';return;}
+    const [x,y]=scr(cam,v);
+    if(x<-60||y<-30||x>cam.W+60||y>cam.H+30){el.style.visibility='hidden';return;}
+    el.style.visibility='visible'; el.style.left=x+'px'; el.style.top=y+'px';
+  }
+  function draw(){
+    if(roadsOn && viewer.isLoaded && viewer.isLoaded()){
+      const cam=camera();
+      roadEls.forEach(({r,paths,tags,ends})=>{
+        let d='', prev=null, prevIn=false;
+        for(const pt of r.dense){
+          const v=toCam(cam,pt[0],pt[1]); const inside=v[2]>NEAR;
+          if(prev){
+            if(inside&&prevIn){const s=scr(cam,v);d+='L'+s[0].toFixed(1)+' '+s[1].toFixed(1);}
+            else if(inside!==prevIn){ // clip against near plane
+              const t=(NEAR-prev[2])/(v[2]-prev[2]); const c=[prev[0]+(v[0]-prev[0])*t,prev[1]+(v[1]-prev[1])*t,NEAR];
+              const s=scr(cam,c);
+              if(inside){d+='M'+s[0].toFixed(1)+' '+s[1].toFixed(1);const s2=scr(cam,v);d+='L'+s2[0].toFixed(1)+' '+s2[1].toFixed(1);}
+              else d+='L'+s[0].toFixed(1)+' '+s[1].toFixed(1);
+            }
+          } else if(inside){const s=scr(cam,v);d+='M'+s[0].toFixed(1)+' '+s[1].toFixed(1);}
+          prev=v; prevIn=inside;
+        }
+        paths.forEach(p=>p.setAttribute('d',d));
+        r.tags.forEach((t,i)=>placeTag(tags[i],cam,t[0],t[1]));
+        r.ends.forEach((e,i)=>placeTag(ends[i],cam,e.at[0],e.at[1]));
+      });
+    }
+    NightFX.frame();
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------- night: street lamps + fireworks over Yen So lake ---------- */
+  const NightFX=(()=>{
+    const cv=document.createElement('canvas'); cv.id='fx';
+    const g=cv.getContext('2d');
+    let on=false, last=0, nextLaunch=0, dpr=1;
+    // launch points on Hồ Yên Sở (yaw, pitch)
+    const LAUNCH=[[68,-19.4],[76,-18.4],[83,-18.2],[90,-20],[96,-22]];
+    // street lamps: main roads + project roads (plan face: x=u, z=-v, y=-1)
+    const fromDown=(px,py)=>{const u=px/1536-1,v=py/1536-1,h=Math.hypot(u,v);return [Math.atan2(u,-v)/D,-Math.atan2(1,h)/D];};
+    const DOWN_ROADS=[
+      [[572,1370],[580,1800],[588,2300],[596,2800],[600,3072]],               // trục chính phía tây dự án
+      [[560,1000],[575,1370]],
+      [[700,1700],[1200,1690],[1700,1690],[2050,1710]],                        // đường nội khu phía nam
+      [[2000,1700],[1860,1880],[1740,2080],[1660,2400],[1650,2800],[1690,3072]], // đường cong khu phố thương mại
+      [[2050,1700],[2400,1690],[2650,1600],[2800,1520],[2950,1450]],
+      [[0,850],[700,800],[1400,770],[2100,740],[2700,700],[3072,680]],          // đường ven kênh
+      [[2280,1100],[2300,700],[2290,300],[2270,0]]
+    ].map(l=>l.map(p=>fromDown(p[0],p[1])));
+    const lampLines=[...ROADS.map(r=>r.pts),...DOWN_ROADS];
+    const LAMPS=[];
+    lampLines.forEach(l=>{
+      const d=densify(l); let acc=0;
+      for(let i=1;i<d.length;i++){
+        let dy=d[i][0]-d[i-1][0]; if(dy>180)dy-=360; if(dy<-180)dy+=360;
+        const cp=Math.cos(d[i][1]*D); acc+=Math.hypot(dy*cp,d[i][1]-d[i-1][1]);
+        const step=0.45+0.012*Math.abs(90+d[i][1]); // tighter spacing far away
+        if(acc>=step){acc=0;LAMPS.push([d[i][0],d[i][1],Math.random()]);}
+      }
+    });
+    const sprite=(c,size)=>{const s=document.createElement('canvas');s.width=s.height=size;const x=s.getContext('2d');
+      const gr=x.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+      gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.12,c(1));gr.addColorStop(.4,c(.28));gr.addColorStop(1,c(0));
+      x.fillStyle=gr;x.fillRect(0,0,size,size);return s;};
+    const lampSpr=sprite(a=>'rgba(255,190,110,'+a+')',64);
+    const sprCache={};
+    const colSpr=hex=>sprCache[hex]||(sprCache[hex]=sprite(a=>{const n=parseInt(hex.slice(1),16);return 'rgba('+(n>>16)+','+(n>>8&255)+','+(n&255)+','+a+')';},64));
+    const PALS=[['#ffd36b','#ff9f43'],['#ff5e7a','#ffd0da'],['#7ad7ff','#ffffff'],['#c39bff','#ffe08a'],['#7dffb0','#e6fff4'],['#ff4b3e','#ffd2a6'],['#ffffff','#ffd36b']];
+    const rnd=(a,b)=>a+Math.random()*(b-a);
+    let rockets=[], parts=[], flashes=[];
+    function launch(){
+      const L=LAUNCH[Math.floor(Math.random()*LAUNCH.length)];
+      const pal=PALS[Math.floor(Math.random()*PALS.length)];
+      const type=['peony','peony','ring','willow','crossette','palm'][Math.floor(Math.random()*6)];
+      rockets.push({y:L[0]+rnd(-1.5,1.5),p:L[1],y0:L[0],p0:L[1],top:L[1]+rnd(13,19),v:rnd(16,20),pal,type,ox:[],t:0});
+    }
+    function burst(r){
+      const n=r.type==='willow'?70:r.type==='ring'?60:r.type==='palm'?22:110;
+      const sp=r.type==='willow'?10:r.type==='palm'?14:rnd(12,16);
+      const tilt=rnd(0,Math.PI);
+      for(let i=0;i<n;i++){
+        const a=(i/n)*Math.PI*2+rnd(-.05,.05);
+        let s=sp*(r.type==='ring'?1:Math.cbrt(Math.random())*.95+.05);
+        let vx=Math.cos(a)*s, vy=Math.sin(a)*s;
+        if(r.type==='ring'){vy*=.45;const c=Math.cos(tilt),sn=Math.sin(tilt);[vx,vy]=[vx*c-vy*sn,vx*sn+vy*c];}
+        const col=Math.random()<.75?r.pal[0]:r.pal[1];
+        parts.push({y:r.y,p:r.p,vx,vy,life:r.type==='willow'?rnd(2.6,3.4):rnd(1.4,2.1),age:0,col,
+          drag:r.type==='willow'?1.7:2.4,grav:r.type==='willow'?2.2:3.0,trail:[],w:r.type==='palm'?2.2:1.4,
+          split:r.type==='crossette'&&i%5===0});
+      }
+      flashes.push({y:r.y,p:r.p,y0:r.y0,p0:r.p0,col:r.pal[0],t:0});
+      if(typeof Music!=='undefined'&&Music.boom) Music.boom(0.15+Math.random()*0.25);
+    }
+    function step(dt){
+      if(performance.now()>nextLaunch){launch(); if(Math.random()<.35) setTimeout(launch,180); nextLaunch=performance.now()+rnd(550,1500);}
+      rockets=rockets.filter(r=>{
+        r.t+=dt; r.ox.push([r.y,r.p]); if(r.ox.length>10)r.ox.shift();
+        const k=Math.max(.25,(r.top-r.p)/(r.top-r.p0)); r.p+=r.v*k*dt; r.y+=Math.sin(r.t*9)*.01;
+        if(r.p>=r.top-.15){burst(r);return false;} return true;
+      });
+      const extra=[];
+      parts=parts.filter(q=>{
+        q.age+=dt; if(q.age>q.life) return false;
+        q.trail.push([q.y,q.p]); if(q.trail.length>(q.drag<2?12:6)) q.trail.shift();
+        const f=Math.exp(-q.drag*dt); q.vx*=f; q.vy=q.vy*f-q.grav*dt;
+        q.y+=q.vx*dt/Math.cos(q.p*D); q.p+=q.vy*dt;
+        if(q.split&&q.age>.55){q.split=false;for(let j=0;j<4;j++){const a=j*Math.PI/2+.5;extra.push({...q,vx:Math.cos(a)*6,vy:Math.sin(a)*6,age:0,life:.8,trail:[],split:false,w:1.1});}}
+        return true;
+      });
+      parts.push(...extra);
+      flashes=flashes.filter(f=>(f.t+=dt)<1.1);
+    }
+    function frame(){
+      const now=performance.now(); const dt=Math.min(.05,(now-(last||now))/1000); last=now;
+      if(!on) return;
+      const c=viewer.getContainer(); const W=c.clientWidth,H=c.clientHeight;
+      dpr=Math.min(2,window.devicePixelRatio||1);
+      if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+      g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+      if(!(viewer.isLoaded&&viewer.isLoaded())) return;
+      step(dt);
+      const cam=camera(); const zoom=cam.f/700;
+      const P=(y,p)=>{const v=toCam(cam,y,p);if(v[2]<.12)return null;const s=scr(cam,v);return (s[0]<-80||s[1]<-80||s[0]>W+80||s[1]>H+80)?null:s;};
+      g.globalCompositeOperation='lighter';
+      g.globalAlpha=1;
+      // flashes: sky glow at burst + reflection on the lake
+      for(const f of flashes){
+        const a=Math.max(0,1-f.t/1.1);
+        const s=P(f.y,f.p); if(s){const r=170*zoom; g.globalAlpha=a*.5; g.drawImage(colSpr(f.col),s[0]-r,s[1]-r,r*2,r*2);}
+        const w=P(f.y0,f.p0-.6); if(w){const r=90*zoom; g.globalAlpha=a*.55; g.save(); g.translate(w[0],w[1]); g.scale(1.6,.45); g.drawImage(colSpr(f.col),-r,-r,r*2,r*2); g.restore();}
+      }
+      g.globalAlpha=1; g.lineCap='round';
+      // rockets
+      for(const r of rockets){
+        let prev=null; r.ox.forEach((o,i)=>{const s=P(o[0],o[1]); if(s&&prev){g.strokeStyle='rgba(255,220,170,'+(i/r.ox.length*.9)+')';g.lineWidth=Math.max(1,1.6*zoom);g.beginPath();g.moveTo(prev[0],prev[1]);g.lineTo(s[0],s[1]);g.stroke();} prev=s;});
+        const s=P(r.y,r.p); if(s){const sz=10*zoom; g.drawImage(lampSpr,s[0]-sz/2,s[1]-sz/2,sz,sz);}
+      }
+      // sparks
+      for(const q of parts){
+        const life=1-q.age/q.life; const fl=life*(q.age>q.life*.6?(.6+.4*Math.random()):1);
+        const s=P(q.y,q.p); if(!s) continue;
+        if(q.trail.length>1){
+          const s0=P(q.trail[0][0],q.trail[0][1]);
+          if(s0){g.strokeStyle=q.col;g.globalAlpha=fl*.55;g.lineWidth=Math.max(.8,q.w*zoom);g.beginPath();g.moveTo(s0[0],s0[1]);g.lineTo(s[0],s[1]);g.stroke();}
+        }
+        const sz=Math.max(3.5,7*zoom*q.w)*(.6+.4*life); g.globalAlpha=fl;
+        g.drawImage(colSpr(q.col),s[0]-sz,s[1]-sz,sz*2,sz*2);
+      }
+      g.globalAlpha=1; g.globalCompositeOperation='source-over';
+    }
+    function enable(v){
+      on=v; cv.style.display=v?'block':'none';
+      if(v){nextLaunch=performance.now()+900;} else {rockets=[];parts=[];flashes=[];}
+    }
+    return {canvas:cv,frame,enable};
+  })();
+  function mountOverlay(){
+    const rc=viewer.getContainer().querySelector('.pnlm-render-container');
+    if(!rc){setTimeout(mountOverlay,100);return;}
+    const canvas=rc.querySelector('canvas');
+    rc.insertBefore(NightFX.canvas,canvas?canvas.nextSibling:rc.firstChild);
+  }
+  mountOverlay(); requestAnimationFrame(draw);
+  viewer.on('scenechange',()=>setTimeout(mountOverlay,50));
+
+  /* ---------- legend ---------- */
+  const lb=$('#legendBody');
+  lb.insertAdjacentHTML('beforeend','<h3>Điểm mốc</h3>');
+  POIS.forEach(p=>{
+    const b=document.createElement('button');
+    b.innerHTML='<span class="pd'+(p.project?' brand':'')+(p.cls?' '+p.cls:'')+'"></span>'+p.title;
+    b.addEventListener('click',()=>flyTo(p)); lb.appendChild(b);
+  });
+  lb.insertAdjacentHTML('beforeend','<p class="note">Vị trí điểm mốc được dựng theo ảnh flycam, mang tính minh hoạ.</p>');
+  if(window.matchMedia('(max-width:640px)').matches) $('#legend').open=false;
+
+  /* ---------- controls ---------- */
+  function setRotate(on){ $('#btnRotate').setAttribute('aria-pressed',on); on?viewer.startAutoRotate(-2):viewer.stopAutoRotate(); }
+  $('#btnRotate').addEventListener('click',()=>setRotate($('#btnRotate').getAttribute('aria-pressed')!=='true'));
+  $('#btnFull').addEventListener('click',()=>{
+    const el=document.documentElement;
+    try{ if(!document.fullscreenElement){(el.requestFullscreen?el.requestFullscreen():Promise.reject()).catch(()=>{});} else document.exitFullscreen(); }catch(e){}
+  });
+  document.addEventListener('fullscreenchange',()=>$('#btnFull').setAttribute('aria-pressed',!!document.fullscreenElement));
+  function setScene(id){
+    $('#vDay').setAttribute('aria-pressed',id==='day'); $('#vPlan').setAttribute('aria-pressed',id==='plan'); $('#vNight').setAttribute('aria-pressed',id==='night');
+    document.body.classList.toggle('night',id==='night');
+    NightFX.enable(id==='night');
+    if(viewer.getScene()!==id){
+      if(id==='night'){ // turn towards Yen So lake where the fireworks go up
+        viewer.loadScene(id,-8,82,95);
+        setTimeout(()=>{viewer.stopAutoRotate();setRotate(false);},900);
+      } else viewer.loadScene(id,viewer.getPitch(),viewer.getYaw(),viewer.getHfov());
+    }
+  }
+  $('#vNight').addEventListener('click',()=>setScene('night'));
+  $('#vDay').addEventListener('click',()=>setScene('day'));
+  $('#vPlan').addEventListener('click',()=>setScene('plan'));
+
+  /* ---------- generative ambient music (Web Audio, no external file) ---------- */
+  const Music=(()=>{
+    let ctx,master,timer,playing=false,step=0;
+    const CHORDS=[[57,64,67,71,76],[53,60,64,69,72],[48,55,64,67,71],[55,62,66,69,74]]; // Am9 · Fmaj7 · Cmaj7 · G6
+    const SCALE=[69,71,72,74,76,79,81,83,84,88];
+    const hz=m=>440*Math.pow(2,(m-69)/12);
+    function reverb(){
+      const len=ctx.sampleRate*3.2, buf=ctx.createBuffer(2,len,ctx.sampleRate);
+      for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);}
+      const cv=ctx.createConvolver(); cv.buffer=buf; return cv;
+    }
+    function init(){
+      ctx=new (window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain(); master.gain.value=0;
+      const comp=ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
+      const rv=reverb(), wet=ctx.createGain(); wet.gain.value=.55; rv.connect(wet); wet.connect(master);
+      Music.bus=ctx.createGain(); Music.bus.connect(master); Music.bus.connect(rv);
+    }
+    function pad(notes,t,dur){
+      const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=900; lp.Q.value=.4; lp.connect(Music.bus);
+      notes.forEach((m,i)=>{
+        [-6,6].forEach(det=>{
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.type=i===0?'triangle':'sawtooth'; o.frequency.value=hz(m-(i===0?12:0)); o.detune.value=det;
+          g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(i===0?.05:.018,t+2.2); g.gain.setValueAtTime(i===0?.05:.018,t+dur-2.4); g.gain.linearRampToValueAtTime(0,t+dur+.6);
+          o.connect(g); g.connect(lp); o.start(t); o.stop(t+dur+.8);
+        });
+      });
+    }
+    function bell(m,t,v){
+      const o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=hz(m); o2.type='sine'; o2.frequency.value=hz(m)*2.01;
+      const g2=ctx.createGain(); g2.gain.value=.25; o2.connect(g2); g2.connect(g);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.012); g.gain.exponentialRampToValueAtTime(.0005,t+2.6);
+      o.connect(g); g.connect(Music.bus); o.start(t); o2.start(t); o.stop(t+2.8); o2.stop(t+2.8);
+    }
+    const BAR=6.4;
+    function schedule(){
+      const t=ctx.currentTime+.1, ch=CHORDS[step%CHORDS.length];
+      pad(ch,t,BAR);
+      const n=4+Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++){
+        const at=t+.4+i*(BAR/n)+Math.random()*.25;
+        const pool=SCALE.filter(m=>ch.some(c=>(m-c)%12===0)||Math.random()<.35);
+        bell(pool[Math.floor(Math.random()*pool.length)],at,.05+Math.random()*.04);
+      }
+      step++;
+    }
+    return {
+      play(){ if(!ctx)init(); ctx.resume(); if(playing)return; playing=true;
+        master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(.8,ctx.currentTime,.8);
+        schedule(); timer=setInterval(schedule,BAR*1000); },
+      stop(){ if(!ctx||!playing)return; playing=false; clearInterval(timer);
+        master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0,ctx.currentTime,.4); },
+      boom(delay){ if(!ctx||!playing)return;
+        const t=ctx.currentTime+(delay||0), len=ctx.sampleRate*1.4, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
+        for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,5);
+        const src=ctx.createBufferSource(); src.buffer=buf;
+        const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(700,t); lp.frequency.exponentialRampToValueAtTime(90,t+1.2);
+        const gg=ctx.createGain(); gg.gain.setValueAtTime(0,t); gg.gain.linearRampToValueAtTime(.32,t+.01); gg.gain.exponentialRampToValueAtTime(.001,t+1.3);
+        src.connect(lp); lp.connect(gg); gg.connect(master); src.start(t); src.stop(t+1.4); },
+      get playing(){return playing;}
+    };
+  })();
+  function setMusic(on){ on?Music.play():Music.stop(); $('#btnMusic').setAttribute('aria-pressed',on); }
+  $('#btnMusic').addEventListener('click',()=>setMusic(!Music.playing));
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden&&Music.playing){Music.stop();Music._resume=true;} else if(!document.hidden&&Music._resume){Music._resume=false;setMusic(true);} });
+
+  $('#btnStart').addEventListener('click',()=>{ $('#intro').classList.add('gone'); try{setMusic(true);}catch(e){} });
+})();
+</script>
+
+
+</body>
+</html>
+<script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="61a856ae-a981-4413-9b9e-89b6f71be633" data-app-host="app.netlify.com" data-account-tier="free"></script>

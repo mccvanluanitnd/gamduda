@@ -1,0 +1,9 @@
+# Apache: HTML luôn kiểm tra bản mới; ảnh/nhạc cache 7 ngày (đã có ?v= trong đường dẫn nên cập nhật vẫn tải lại)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(jpg|jpeg|png|mp3|js)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>

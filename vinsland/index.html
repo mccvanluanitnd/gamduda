@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gamuda Central Park 360° | Vinsland</title>
+<meta name="description" content="Tham quan thực tế ảo 360° dự án Gamuda Central Park – khu Yên Sở, Hà Nội cùng Vinsland.">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta name="theme-color" content="#2d2e76">
+<link rel="icon" href="assets/logo.png?v=20261116a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Montserrat:wght@700;800&display=swap">
+<style>
+:root{
+  --ink:#0b0d1a;
+  --glass:rgba(14,16,34,.62);
+  --glass-hi:rgba(26,28,58,.86);
+  --line:rgba(255,255,255,.16);
+  --fg:#f5f6fb;
+  --muted:#b7b9d0;
+  --brand:#2d2e76;        /* Vinsland navy */
+  --brand-hi:#4244a8;
+  --green:#0a8944;        /* Vinsland green */
+  --green-hi:#16b062;
+  --font-display:"Montserrat","Be Vietnam Pro",system-ui,sans-serif;
+  --font-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--fg);font-family:var(--font-body);overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{position:fixed;inset:0}
+#pano{position:absolute;inset:0}
+
+/* --- Pannellum core (trimmed, MIT) --- */
+.pnlm-container{margin:0;padding:0;overflow:hidden;position:relative;cursor:default;width:100%;height:100%;background:var(--ink);user-select:none;outline:0;line-height:1.4;contain:content;font-family:var(--font-body)}
+.pnlm-container *{box-sizing:content-box}
+.pnlm-ui{position:absolute;width:100%;height:100%;z-index:1}
+.pnlm-grab{cursor:grab}.pnlm-grabbing{cursor:grabbing}
+.pnlm-render-container{cursor:inherit;position:absolute;height:100%;width:100%}
+.pnlm-controls-container,.pnlm-load-box,.pnlm-load-button,.pnlm-info-box,.pnlm-error-msg,.pnlm-about-msg,.pnlm-panorama-info,.pnlm-compass,.pnlm-hot-spot-debug-indicator{display:none!important}
+.pnlm-hotspot-base{position:absolute;visibility:hidden;cursor:default;vertical-align:middle;top:0;z-index:3}
+.pnlm-world{position:absolute;left:50%;top:50%}
+.pnlm-face{position:absolute;transform-origin:0 0}
+.pnlm-dragfix,.pnlm-preview-img{position:absolute;height:100%;width:100%}
+.pnlm-preview-img{background-size:cover;background-position:center}
+.pnlm-fade-img{position:absolute;top:0;left:0}
+.pnlm-pointer{cursor:pointer}
+
+/* --- hotspot marker --- */
+.pnlm-hotspot-base.mark{width:0;height:0}
+.mk{position:absolute;left:0;top:0;display:flex;align-items:center;transform:translate(-50%,-50%);pointer-events:none;animation:pop .35s ease-out}
+.mk .lab{padding:7px 14px;border-radius:999px;background:var(--green);border:1px solid rgba(255,255,255,.4);white-space:nowrap;font:700 13px/1.2 var(--font-body);color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+.mk .stem{width:2px;height:26px;background:#fff;box-shadow:0 0 5px rgba(0,0,0,.7)}
+.mk .dot{width:12px;height:12px;border-radius:50%;background:var(--green-hi);box-shadow:0 0 0 4px rgba(22,176,98,.4);animation:ping 1.8s ease-out infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 18px rgba(255,255,255,0)}}
+@keyframes pop{from{opacity:0}}
+
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;display:none}
+/* --- chrome --- */
+.chrome{position:absolute;z-index:10}
+.brand{top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px;max-width:calc(100% - 100px)}
+.brand .chip{flex:none;padding:10px 16px;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.brand .chip img{width:150px;height:auto;display:block}
+.brand h1{margin:0;font:800 clamp(18px,2.8vw,28px)/1.05 var(--font-display);letter-spacing:-.01em;text-shadow:0 2px 14px rgba(0,0,0,.65);text-wrap:balance}
+.brand p{margin:4px 0 0;font:500 13px/1.35 var(--font-body);color:#eceef8;text-shadow:0 1px 10px rgba(0,0,0,.75)}
+.brand p b{font-weight:600;color:#fff}
+
+.rail{top:calc(14px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:10px}
+.rbtn{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--fg);display:grid;place-items:center;cursor:pointer;transition:background .2s,transform .15s}
+.rbtn svg{width:20px;height:20px}
+.rbtn{position:relative}
+.rbtn .eq{position:absolute;inset:auto 0 7px;display:flex;justify-content:center;gap:2px;height:6px;align-items:flex-end;opacity:0}
+.rbtn[aria-pressed="true"] .eq{opacity:1}
+.rbtn .eq span{width:2px;background:#fff;border-radius:1px;animation:eq 1s ease-in-out infinite}
+.rbtn .eq span:nth-child(2){animation-delay:.25s}.rbtn .eq span:nth-child(3){animation-delay:.5s}
+@keyframes eq{0%,100%{height:2px}50%{height:6px}}
+.legend .note{margin:0 8px 0;padding:9px 6px 11px;border-top:1px solid var(--line);font-size:11px;line-height:1.45;color:var(--muted);font-style:italic}
+.rbtn:hover{background:var(--glass-hi)}
+.rbtn:active{transform:scale(.94)}
+.rbtn[aria-pressed="true"]{background:var(--green);border-color:rgba(255,255,255,.3)}
+.rbtn:focus-visible,.seg button:focus-visible,.legend button:focus-visible,.start:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+.seg{left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;padding:5px;gap:4px;border-radius:999px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.seg button{border:0;cursor:pointer;border-radius:999px;padding:10px 18px;font:600 13.5px/1 var(--font-body);color:var(--muted);background:transparent;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.seg button svg{width:16px;height:16px}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--brand)}
+.seg #vNight[aria-pressed="true"]{background:var(--brand-hi);color:#fff}
+
+.legend{left:max(16px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:270px;max-width:calc(100% - 32px);border-radius:16px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden}
+.legend summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font:700 12px/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary svg{width:14px;height:14px;transition:transform .2s}
+.legend[open] summary svg{transform:rotate(180deg)}
+.legend .body{padding:0 8px 10px;display:grid;gap:2px;max-height:min(30vh,260px);overflow:auto}
+.legend h3{margin:8px 6px 4px;font:600 10.5px/1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.legend button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:var(--fg);font:500 13px/1.3 var(--font-body);padding:7px 6px;border-radius:9px;cursor:pointer}
+.legend button:hover,.legend button.on{background:rgba(255,255,255,.1)}
+.legend .pd{flex:none;width:9px;height:9px;border-radius:50%;background:var(--green-hi);margin:0 6px 0 7px}
+.legend .pd.proj{background:#fff;box-shadow:0 0 0 3px var(--brand-hi)}
+
+.hint{right:max(16px,env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));font:500 12px/1.35 var(--font-body);color:#e2e4f0;text-shadow:0 1px 8px rgba(0,0,0,.85);max-width:220px;text-align:right}
+
+
+/* --- dock: menu thông tin + vị trí --- */
+.dock{left:max(16px,env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:270px;max-width:calc(100% - 32px);display:flex;flex-direction:column;gap:8px}
+.dock .legend{position:relative;left:auto;bottom:auto;width:100%;max-width:none}
+.menu{display:grid;gap:6px}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);cursor:pointer;color:var(--fg);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px;padding:10px 12px;font:700 12.5px/1.2 var(--font-display);letter-spacing:.04em;text-transform:uppercase;transition:background .2s,transform .15s}
+.menu button:hover{background:var(--glass-hi)}
+.menu button:active{transform:scale(.98)}
+.menu button .mi{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--green)}
+.menu button .mi svg{width:15px;height:15px}
+.menu button .go{margin-left:auto;width:14px;height:14px;opacity:.7}
+.menu button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* --- panel thông tin --- */
+.panel{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:max(14px,env(safe-area-inset-top,0px)) 14px max(14px,env(safe-area-inset-bottom,0px));background:rgba(7,8,20,.86);animation:fade .25s ease}
+.panel[hidden],.lb[hidden]{display:none}
+@keyframes fade{from{opacity:0}}
+.sheet{width:min(1040px,100%);max-height:100%;display:flex;flex-direction:column;border-radius:20px;background:rgba(18,20,44,.94);border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden}
+.sheet header{display:flex;align-items:center;gap:14px;padding:16px 18px 14px;border-bottom:1px solid var(--line)}
+.sheet header img{height:26px;width:auto;background:#fff;border-radius:8px;padding:4px 8px;flex:none}
+.sheet h2{margin:0;font:800 clamp(17px,2.4vw,22px)/1.15 var(--font-display);letter-spacing:-.005em;flex:1}
+.sheet .x{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--fg);display:grid;place-items:center;cursor:pointer}
+.sheet .x:hover{background:rgba(255,255,255,.14)}
+.sheet .x svg{width:18px;height:18px}
+.tabs{display:flex;gap:6px;padding:12px 18px 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:0;cursor:pointer;border-radius:999px;padding:9px 16px;font:600 13px/1 var(--font-body);color:var(--muted);background:rgba(255,255,255,.06)}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--brand)}
+.content{padding:16px 18px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+.sub{margin:0 0 14px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{padding:14px 10px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);text-align:center}
+.stat b{display:block;font:800 clamp(20px,3.4vw,28px)/1 var(--font-display);color:#fff}
+.stat span{display:block;margin-top:6px;font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.kv{margin:0;display:grid;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.kv div{display:grid;grid-template-columns:minmax(120px,210px) 1fr;gap:14px;padding:11px 14px;font-size:14px;line-height:1.5}
+.kv div:nth-child(odd){background:rgba(255,255,255,.04)}
+.kv dt{color:var(--muted);font-weight:500}
+.kv dd{margin:0;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.gcard{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);cursor:pointer;color:var(--fg);text-align:left;transition:transform .2s,border-color .2s}
+.gcard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.4)}
+.gcard:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.gcard img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#0d0f22}
+.gcard span{display:block;padding:9px 12px 11px;font:600 13px/1.35 var(--font-body)}
+.grid.tall .gcard img{aspect-ratio:2/3;object-fit:cover;object-position:top}
+.note2{margin:14px 0 0;font-size:12px;color:var(--muted);font-style:italic}
+
+.vid{display:block;width:100%;max-height:calc(100vh - 230px);border-radius:14px;background:#000}
+/* --- lightbox --- */
+.lb{position:absolute;inset:0;z-index:40;background:rgba(4,5,14,.94);display:flex;flex-direction:column;animation:fade .2s ease}
+.lb .bar{display:flex;align-items:center;gap:12px;padding:max(12px,env(safe-area-inset-top,0px)) 14px 10px}
+.lb .cap{flex:1;font:600 14px/1.35 var(--font-body);min-width:0}
+.lb .cnt{color:var(--muted);font-size:13px;white-space:nowrap}
+.lb .stage{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 56px}
+.lb .stage img{max-width:100%;max-height:100%;min-height:0;object-fit:contain;cursor:zoom-in;border-radius:6px;user-select:none}
+.lb .stage.zoom{overflow:auto;display:block;text-align:center}
+.lb .stage.zoom img{max-width:none;max-height:none;width:200%;cursor:zoom-out}
+.lb .nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.1);color:#fff;display:grid;place-items:center;cursor:pointer}
+.lb .nav:hover{background:rgba(255,255,255,.22)}
+.lb .nav svg{width:20px;height:20px}
+.lb .prev{left:8px}.lb .next{right:8px}
+.lb .x{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer}
+.lb .x svg{width:18px;height:18px}
+.lb .hintz{padding:8px 14px max(12px,env(safe-area-inset-bottom,0px));text-align:center;color:var(--muted);font-size:12px}
+@media (max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .kv div{grid-template-columns:1fr;gap:2px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .gcard span{font-size:12px;padding:8px 10px 10px}
+  .sheet{border-radius:16px}
+  .sheet header img{height:22px}
+  .lb .stage{padding:0 8px}
+  .lb .nav{top:auto;bottom:46px;transform:none}
+}
+
+/* --- intro --- */
+.intro{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%,rgba(11,13,26,.3),rgba(11,13,26,.88));transition:opacity .6s ease,visibility .6s;padding-inline:16px}
+.intro.gone{opacity:0;visibility:hidden}
+.intro .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;max-width:460px}
+.intro .logo{width:min(280px,76vw);padding:16px 20px;border-radius:20px;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.intro .logo img{display:block;width:100%;height:auto}
+.intro .eyebrow{font:600 11.5px/1 var(--font-body);letter-spacing:.22em;text-transform:uppercase;color:#b9f0d2}
+.intro h2{margin:0;font:800 clamp(30px,6vw,48px)/1 var(--font-display);letter-spacing:-.015em;text-wrap:balance}
+.intro p{margin:0;color:#dfe1ee;font-size:14.5px;line-height:1.55;max-width:40ch}
+.start{margin-top:6px;border:0;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 26px;border-radius:999px;background:var(--green);color:#fff;font:700 14.5px/1 var(--font-body);box-shadow:0 12px 30px rgba(10,137,68,.45);transition:transform .15s,background .2s}
+.start:hover{background:var(--green-hi)}.start:active{transform:scale(.97)}
+.start svg{width:18px;height:18px}
+
+@media (max-width:900px),(max-height:560px){
+  .brand .chip{padding:7px 10px;border-radius:11px}.brand .chip img{width:96px}
+  .brand p{font-size:12px}
+  .hint{display:none}
+  .seg{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+  .seg button{padding:9px 12px;font-size:12px;gap:6px}
+  .seg button svg{width:14px;height:14px}
+  .dock{right:max(16px,env(safe-area-inset-right,0px));width:auto;max-width:560px}
+  .menu{grid-template-columns:repeat(3,1fr)}
+  .menu button{flex-direction:column;text-align:center;gap:6px;padding:9px 4px;font-size:10.5px;letter-spacing:.02em}
+  .menu button .go{display:none}
+  .legend .body{max-height:min(26vh,200px)}
+  .rbtn{width:42px;height:42px}
+  .mk .lab{font-size:12px;padding:6px 11px}
+}
+@media (max-height:560px){
+  .rail{gap:7px}.rbtn{width:36px;height:36px}.rbtn svg{width:17px;height:17px}
+  .brand h1{font-size:18px}.brand p{display:none}
+  .seg{bottom:calc(132px + env(safe-area-inset-bottom,0px))}
+  .menu button{padding:6px 4px}.menu button .mi{width:24px;height:24px}
+}
+@media (max-width:400px){
+  .seg{max-width:calc(100% - 20px)}
+  .seg button{padding:9px 9px;font-size:11.5px;gap:0}
+  .seg button svg{display:none}
+  .brand h1{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){.rbtn .eq span{animation:none}.mk .dot{animation:none}.mk{animation:none}.intro{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="pano" aria-label="Ảnh 360° dự án Gamuda Central Park"></div>
+
+  <header class="chrome brand">
+    <div class="chip"><img src="assets/logo.png?v=20261116a" alt="Vinsland – Tạo giá trị, dựng niềm tin"></div>
+    <div>
+      <h1>Gamuda Central Park</h1>
+      <p><b>Vinsland</b> · Toàn cảnh 360° khu Yên Sở, Hà Nội</p>
+    </div>
+  </header>
+
+  <nav class="chrome rail" aria-label="Điều khiển">
+    <button class="rbtn" id="btnMusic" aria-pressed="false" title="Bật / tắt nhạc nền" aria-label="Bật hoặc tắt nhạc nền">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <button class="rbtn" id="btnRotate" aria-pressed="true" title="Tự động xoay" aria-label="Bật hoặc tắt tự động xoay">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+    </button>
+    <button class="rbtn" id="btnZoomIn" title="Phóng to" aria-label="Phóng to">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="rbtn" id="btnZoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="rbtn" id="btnFull" aria-pressed="false" title="Toàn màn hình" aria-label="Toàn màn hình">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+    </button>
+  </nav>
+
+  <div class="chrome seg" role="group" aria-label="Chế độ xem">
+    <button id="vOver" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Toàn cảnh
+    </button>
+    <button id="vPlan" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      Mặt bằng chi tiết
+    </button>
+    <button id="vNight" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      Về đêm
+    </button>
+  </div>
+
+  <div class="chrome dock" id="dock">
+    <nav class="menu" aria-label="Thông tin dự án">
+      <button type="button" data-panel="overview"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg></span>Tổng quan dự án<svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+      <button type="button" data-panel="info"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>Thông tin dự án<svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+      <button type="button" data-panel="progress"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h20"/><path d="M4 18v-3a8 8 0 0 1 16 0v3"/><path d="M12 7v3"/><path d="M10 18v-5h4v5"/></svg></span>Tiến độ xây dựng<svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+    </nav>
+  <details class="legend" id="legend" open>
+    <summary>Vị trí &amp; kết nối <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></summary>
+    <div class="body" id="legendBody"></div>
+  </details>
+  </div>
+
+  <p class="chrome hint">Kéo để xoay · cuộn hoặc chụm hai ngón để phóng to · bấm “Về đêm” để xem pháo hoa trên hồ Yên Sở</p>
+
+
+  <div class="panel" id="panel" hidden role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+    <div class="sheet">
+      <header><img src="assets/logo.png?v=20261116a" alt="Vinsland"><h2 id="panelTitle"></h2>
+        <button type="button" class="x" id="panelClose" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>
+      <div class="tabs" id="panelTabs" role="tablist" hidden></div>
+      <div class="content" id="panelBody"></div>
+    </div>
+  </div>
+  <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Xem ảnh">
+    <div class="bar"><div class="cap" id="lbCap"></div><div class="cnt" id="lbCnt"></div>
+      <button type="button" class="x" id="lbClose" aria-label="Đóng ảnh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="stage" id="lbStage"><img id="lbImg" alt=""></div>
+    <button type="button" class="nav prev" id="lbPrev" aria-label="Ảnh trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+    <button type="button" class="nav next" id="lbNext" aria-label="Ảnh sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+    <div class="hintz">Bấm vào ảnh để phóng to · dùng phím ← → để chuyển ảnh · Esc để đóng</div>
+  </div>
+
+  <div class="intro" id="intro">
+    <div class="card">
+      <div class="logo"><img src="assets/logo.png?v=20261116a" alt="Vinsland"></div>
+      <span class="eyebrow">Tham quan thực tế ảo 360°</span>
+      <h2>Gamuda Central Park</h2>
+      <p>Bay trên khu Yên Sở, nhìn trọn mặt bằng dự án, hồ Yên Sở, công viên và các tuyến Vành Đai 3, Pháp Vân – Cầu Giẽ xung quanh.</p>
+      <button class="start" id="btnStart">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Bắt đầu tham quan
+      </button>
+      <small style="color:var(--muted);font-size:12px">Có nhạc nền · bấm biểu tượng nốt nhạc để tắt</small>
+    </div>
+  </div>
+</div>
+
+<audio id="bgm" src="assets/music.mp3?v=20261116a" loop preload="auto"></audio>
+<script src="assets/pannellum.js?v=20261116a"></script>
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const IMG_W=2000, IMG_H=1000;
+  // pixel trên ảnh equirectangular -> yaw/pitch (độ)
+  const toYaw=x=>(x/IMG_W-.5)*360, toPitch=y=>(.5-y/IMG_H)*180;
+
+  // Tên và tọa độ lấy đúng theo các nhãn có sẵn trên ảnh 360° (x,y = pixel trên ảnh 2000x1000)
+  const PROJECT=[
+    {t:'Gamuda Central Park',x:1050,y:870,hfov:75},
+    {t:'Tòa A',x:1435,y:890,hfov:60},
+    {t:'Tòa B',x:770,y:965,hfov:60},
+    {t:'Tòa C',x:557,y:843,hfov:60}
+  ];
+  const AROUND=[
+    {t:'Gamuda Central',x:700,y:606},
+    {t:'Công viên Yên Sở',x:778,y:603},
+    {t:'Hồ Yên Sở',x:897,y:580},
+    {t:'Hồ Linh Đàm',x:559,y:528},
+    {t:'Bến xe Yên Sở',x:1233,y:617},
+    {t:'Chung cư cao cấp Hòa Phát',x:1325,y:602},
+    {t:'Bệnh viện Nội tiết Trung ương',x:311,y:545},
+    {t:'Đường Vành Đai 3',x:894,y:605},
+    {t:'ĐCT Pháp Vân – Cầu Giẽ',x:400,y:571}
+  ];
+  const HOME={yaw:0,pitch:-26,hfov:105};
+  const PLAN={yaw:0,pitch:-77,get hfov(){return innerWidth/innerHeight<.8?70:100;}};   // đưa mặt bằng dự án vào giữa màn hình
+
+  // Ảnh 360° dạng cubemap (6 mặt 3072px, JPEG progressive) – nét và mượt trên cả điện thoại
+  const VER='20261116a';   // đổi số này mỗi lần cập nhật ảnh để trình duyệt tải lại, không dùng ảnh cũ trong cache
+  const faces=p=>[0,1,2,3,4,5].map(i=>'assets/cube/'+(p==='plan'&&i===4?'day':p)+'_'+i+'.jpg?v='+VER); // mặt trời dùng chung
+  const START={yaw:PLAN.yaw,pitch:PLAN.pitch,hfov:PLAN.hfov};   // vừa vào đã thấy dự án ở giữa màn hình
+  const viewer=pannellum.viewer('pano',{
+    default:{firstScene:'plan',sceneFadeDuration:900,autoLoad:true,showControls:false,compass:false,
+      hfov:START.hfov,minHfov:30,maxHfov:120,minPitch:-150,maxPitch:60,
+      autoRotate:-2,autoRotateInactivityDelay:6000,keyboardZoom:true,mouseZoom:true,friction:.15},
+    scenes:{
+      plan:{type:'cubemap',cubeMap:faces('plan'),yaw:START.yaw,pitch:START.pitch},   // Mặt bằng chi tiết
+      day:{type:'cubemap',cubeMap:faces('day')},                                      // Toàn cảnh (có tòa nhà 3D)
+      night:{type:'cubemap',cubeMap:faces('night')}                                   // Về đêm
+    }
+  });
+  // minPitch rộng để nhìn thẳng xuống mặt bằng ở giữa màn hình; chặn không cho lật qua điểm nhìn thẳng đứng
+  (function clampPitch(){if(viewer.getPitch()<-88)viewer.setPitch(-88,false);requestAnimationFrame(clampPitch);})();
+  let scene='plan',prevScene='plan';
+  const OVER={pitch:-81,yaw:0,get hfov(){return PLAN.hfov;}};   // Toàn cảnh: thấy tòa nhà 3D ở giữa
+  const LAKE={pitch:2,yaw:toYaw(900),hfov:92};   // hướng nhìn ra hồ Yên Sở
+  // đổi cảnh plan / day / night; nếu đang đúng cảnh rồi thì chỉ xoay camera
+  function goScene(name,cam,ms){
+    if(name===scene){viewer.lookAt(cam.pitch,cam.yaw,cam.hfov,ms||1400);return;}
+    if(name==='night')prevScene=scene;
+    scene=name;clearMark();
+    $('#vNight').setAttribute('aria-pressed',name==='night');
+    document.body.classList.toggle('night',name==='night');
+    FX.set(name==='night');
+    viewer.loadScene(name,cam.pitch,cam.yaw,cam.hfov);
+  }
+  const curCam=()=>({pitch:viewer.getPitch(),yaw:viewer.getYaw(),hfov:viewer.getHfov()});
+
+  // ---- hotspot tạm thời khi bay tới 1 vị trí ----
+  let markId=null,markTimer=null;
+  function showMark(p){
+    clearMark();
+    markId='mark'+Date.now();
+    viewer.addHotSpot({id:markId,pitch:toPitch(p.y),yaw:toYaw(p.x),cssClass:'mark',
+      createTooltipFunc:(div,t)=>{
+        const m=document.createElement('span');m.className='mk';
+        m.innerHTML='<span class="dot"></span>';m.setAttribute('aria-label',t);div.appendChild(m);
+      },createTooltipArgs:p.t});
+    markTimer=setTimeout(clearMark,6000);
+  }
+  function clearMark(){
+    clearTimeout(markTimer);
+    if(markId){try{viewer.removeHotSpot(markId)}catch(e){} markId=null;}
+  }
+
+  function setRotate(on){
+    $('#btnRotate').setAttribute('aria-pressed',on);
+    if(on)viewer.startAutoRotate(-2);else viewer.stopAutoRotate();
+  }
+  function setView(v){
+    $('#vOver').setAttribute('aria-pressed',v==='over');
+    $('#vPlan').setAttribute('aria-pressed',v==='plan');
+  }
+  function flyTo(p){
+    setRotate(false);
+    document.querySelectorAll('#legendBody button').forEach(b=>b.classList.toggle('on',b.dataset.t===p.t));
+    viewer.lookAt(toPitch(p.y)+(p.hfov?0:12),toYaw(p.x),p.hfov||60,1200);
+    showMark(p);
+    setView('');
+  }
+
+  // ---- pháo hoa trên hồ Yên Sở (chế độ đêm) ----
+  const FX=(()=>{
+    const D=Math.PI/180, cv=document.createElement('canvas');
+    cv.id='fx'; $('#app').insertBefore(cv,$('.brand'));
+    const g=cv.getContext('2d');
+    let on=false,raf=0,last=0,nextLaunch=0;
+    const LAUNCH=[[830,578],[880,582],[930,580],[985,574],[1060,566]].map(p=>[toYaw(p[0]),toPitch(p[1])]);
+    const PALS=[['#ffd36b','#ff9f43'],['#ff5e7a','#ffd0da'],['#7ad7ff','#ffffff'],['#c39bff','#ffe08a'],['#7dffb0','#e6fff4'],['#ff4b3e','#ffd2a6'],['#ffffff','#ffd36b']];
+    const rnd=(a,b)=>a+Math.random()*(b-a);
+    let rockets=[],parts=[],flashes=[];
+    function camera(){
+      const c=viewer.getContainer(),W=c.clientWidth,H=c.clientHeight;
+      const yv=viewer.getYaw()*D,pv=viewer.getPitch()*D,f=(W/2)/Math.tan(viewer.getHfov()*D/2);
+      return {W,H,f,cy:Math.cos(yv),sy:Math.sin(yv),cp:Math.cos(pv),sp:Math.sin(pv)};
+    }
+    function proj(cam,yaw,pitch){
+      const y=yaw*D,p=pitch*D,x=Math.cos(p)*Math.sin(y),Y=Math.sin(p),z=Math.cos(p)*Math.cos(y);
+      const x2=x*cam.cy-z*cam.sy,z2=x*cam.sy+z*cam.cy;
+      const Y2=Y*cam.cp-z2*cam.sp,z3=Y*cam.sp+z2*cam.cp;
+      if(z3<.1)return null;
+      return [cam.W/2+cam.f*x2/z3,cam.H/2-cam.f*Y2/z3];
+    }
+    function launch(){
+      const L=LAUNCH[Math.floor(Math.random()*LAUNCH.length)];
+      const pal=PALS[Math.floor(Math.random()*PALS.length)];
+      const type=['peony','peony','ring','willow','crossette','palm'][Math.floor(Math.random()*6)];
+      rockets.push({y:L[0]+rnd(-1.5,1.5),p:L[1],p0:L[1],top:L[1]+rnd(24,33),v:rnd(30,36),pal,type,ox:[],t:0});
+    }
+    function burst(r){
+      const n=r.type==='willow'?70:r.type==='ring'?60:r.type==='palm'?22:110;
+      const sp=(r.type==='willow'?10:r.type==='palm'?14:rnd(12,16))*1.3,tilt=rnd(0,Math.PI);
+      for(let i=0;i<n;i++){
+        const a=(i/n)*Math.PI*2+rnd(-.05,.05);
+        const s=sp*(r.type==='ring'?1:Math.cbrt(Math.random())*.95+.05);
+        let vx=Math.cos(a)*s,vy=Math.sin(a)*s;
+        if(r.type==='ring'){vy*=.45;const c=Math.cos(tilt),sn=Math.sin(tilt);[vx,vy]=[vx*c-vy*sn,vx*sn+vy*c];}
+        parts.push({y:r.y,p:r.p,vx,vy,life:r.type==='willow'?rnd(2.6,3.4):rnd(1.4,2.1),age:0,
+          col:Math.random()<.75?r.pal[0]:r.pal[1],drag:r.type==='willow'?1.7:2.4,grav:r.type==='willow'?2.2:3,
+          trail:[],w:r.type==='palm'?2.2:1.4,split:r.type==='crossette'&&i%5===0});
+      }
+      flashes.push({y:r.y,p:r.p,col:r.pal[0],t:0});
+    }
+    function step(dt){
+      const now=performance.now();
+      if(now>nextLaunch){launch();if(Math.random()<.35)setTimeout(()=>on&&launch(),180);nextLaunch=now+rnd(550,1500);}
+      rockets=rockets.filter(r=>{
+        r.t+=dt;r.ox.push([r.y,r.p]);if(r.ox.length>10)r.ox.shift();
+        r.p+=r.v*Math.max(.25,(r.top-r.p)/(r.top-r.p0))*dt;r.y+=Math.sin(r.t*9)*.01;
+        if(r.p>=r.top-.15){burst(r);return false;}return true;
+      });
+      const extra=[];
+      parts=parts.filter(q=>{
+        q.age+=dt;if(q.age>q.life)return false;
+        q.trail.push([q.y,q.p]);if(q.trail.length>(q.drag<2?12:6))q.trail.shift();
+        const f=Math.exp(-q.drag*dt);q.vx*=f;q.vy=q.vy*f-q.grav*dt;
+        q.y+=q.vx*dt/Math.max(.2,Math.cos(q.p*D));q.p+=q.vy*dt;
+        if(q.split&&q.age>.55){q.split=false;for(let j=0;j<4;j++){const a=j*Math.PI/2+.5;
+          extra.push({...q,vx:Math.cos(a)*6,vy:Math.sin(a)*6,age:0,life:.8,trail:[],split:false,w:1.1});}}
+        return true;
+      });
+      parts.push(...extra);
+      flashes=flashes.filter(f=>(f.t+=dt)<1.1);
+    }
+    function frame(now){
+      if(!on)return;
+      raf=requestAnimationFrame(frame);
+      const dt=Math.min(.05,(now-(last||now))/1000);last=now;
+      const cam=camera(),dpr=Math.min(2,devicePixelRatio||1);
+      if(cv.width!==Math.round(cam.W*dpr)||cv.height!==Math.round(cam.H*dpr)){cv.width=Math.round(cam.W*dpr);cv.height=Math.round(cam.H*dpr);}
+      g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,cam.W,cam.H);
+      step(dt);
+      const zoom=Math.max(.5,cam.f/700);
+      g.globalCompositeOperation='lighter';g.lineCap='round';
+      flashes.forEach(f=>{const s=proj(cam,f.y,f.p);if(!s)return;const k=f.t/1.1,r=(40+120*k)*zoom;
+        const gr=g.createRadialGradient(s[0],s[1],0,s[0],s[1],r);
+        gr.addColorStop(0,f.col);gr.addColorStop(1,'rgba(0,0,0,0)');
+        g.globalAlpha=Math.max(0,.5*(1-k)*(1-k));g.fillStyle=gr;g.beginPath();g.arc(s[0],s[1],r,0,7);g.fill();});
+      rockets.forEach(r=>{
+        const pts=[...r.ox,[r.y,r.p]].map(p=>proj(cam,p[0],p[1])).filter(Boolean);if(pts.length<2)return;
+        for(let i=1;i<pts.length;i++){g.globalAlpha=i/pts.length;g.strokeStyle='#ffe2a8';g.lineWidth=2.4*zoom;
+          g.beginPath();g.moveTo(pts[i-1][0],pts[i-1][1]);g.lineTo(pts[i][0],pts[i][1]);g.stroke();}
+      });
+      parts.forEach(q=>{
+        const pts=[...q.trail,[q.y,q.p]].map(p=>proj(cam,p[0],p[1])).filter(Boolean);if(pts.length<2)return;
+        const a=Math.max(0,1-q.age/q.life);g.strokeStyle=q.col;g.lineWidth=q.w*zoom*(.6+.6*a);
+        for(let i=1;i<pts.length;i++){g.globalAlpha=a*(i/pts.length);
+          g.beginPath();g.moveTo(pts[i-1][0],pts[i-1][1]);g.lineTo(pts[i][0],pts[i][1]);g.stroke();}
+      });
+      g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    }
+    function hold(h){
+      if(!on)return;
+      if(h){cancelAnimationFrame(raf);}
+      else{last=0;raf=requestAnimationFrame(frame);}
+    }
+    return {hold,set(v){
+      if(v===on)return;on=v;cv.style.display=v?'block':'none';
+      rockets=[];parts=[];flashes=[];
+      if(v){last=0;nextLaunch=performance.now()+600;raf=requestAnimationFrame(frame);}
+      else{cancelAnimationFrame(raf);g.clearRect(0,0,cv.width,cv.height);}
+    }};
+  })();
+
+  // ---- legend ----
+  const body=$('#legendBody');
+  function group(title,items,proj){
+    const h=document.createElement('h3');h.textContent=title;body.appendChild(h);
+    items.forEach(p=>{
+      const b=document.createElement('button');b.type='button';b.dataset.t=p.t;
+      b.innerHTML='<span class="pd'+(proj?' proj':'')+'"></span><span></span>';
+      b.lastChild.textContent=p.t;
+      b.addEventListener('click',()=>flyTo(p));
+      body.appendChild(b);
+    });
+  }
+  group('Dự án',PROJECT,true);
+  group('Tiện ích & kết nối xung quanh',AROUND,false);
+  const note=document.createElement('p');note.className='note';
+  note.textContent='Vị trí điểm mốc được dựng theo ảnh flycam, mang tính minh hoạ cố định.';
+  $('#legend').appendChild(note);
+
+  // ---- controls ----
+  $('#btnRotate').addEventListener('click',()=>setRotate($('#btnRotate').getAttribute('aria-pressed')!=='true'));
+  $('#btnZoomIn').addEventListener('click',()=>viewer.setHfov(Math.max(30,viewer.getHfov()-15),400));
+  $('#btnZoomOut').addEventListener('click',()=>viewer.setHfov(Math.min(120,viewer.getHfov()+15),400));
+  $('#btnFull').addEventListener('click',()=>{
+    const d=document,el=d.documentElement;
+    if(!d.fullscreenElement)(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+    else (d.exitFullscreen||d.webkitExitFullscreen).call(d);
+  });
+  document.addEventListener('fullscreenchange',()=>$('#btnFull').setAttribute('aria-pressed',!!document.fullscreenElement));
+  $('#vOver').addEventListener('click',()=>{clearMark();setRotate(false);goScene('day',OVER);setView('over');});
+  $('#vPlan').addEventListener('click',()=>{clearMark();setRotate(false);goScene('plan',PLAN);setView('plan');});
+  $('#vNight').addEventListener('click',()=>{
+    setRotate(false);setView('');
+    if(scene!=='night')goScene('night',LAKE);else{goScene(prevScene,curCam());setView(prevScene==='day'?'over':'plan');}
+  });
+  // người dùng kéo ảnh -> tắt tự xoay hiển thị
+  $('#pano').addEventListener('pointerdown',()=>{$('#btnRotate').setAttribute('aria-pressed','false');});
+
+  // ---- nhạc nền (âm lượng nhỏ) ----
+  const bgm=$('#bgm');bgm.volume=.22;
+  function setMusic(on){
+    $('#btnMusic').setAttribute('aria-pressed',on);
+    if(on){const p=bgm.play();if(p&&p.catch)p.catch(()=>$('#btnMusic').setAttribute('aria-pressed','false'));}
+    else bgm.pause();
+  }
+  $('#btnMusic').addEventListener('click',()=>setMusic(bgm.paused));
+
+  // ---- thông tin dự án: tổng quan / layout-mặt bằng-tiện ích / tiến độ ----
+  const A='assets/info/';
+  const OVERVIEW=[
+    ['Tên dự án','Gamuda Central Park'],
+    ['Phân khu','Gamuda Yên Sở Park'],
+    ['Chủ đầu tư','Gamuda Land Việt Nam (100% vốn Malaysia)'],
+    ['Đơn vị thi công','Công ty CP đầu tư xây dựng Phục Hưng Holdings'],
+    ['Vị trí','Lô HH2, Công Viên Yên Sở, P. Yên Sở, Q. Hoàng Mai, Tp. Hà Nội'],
+    ['Quy mô dự án','3 tòa tháp A, B, C cao 40 tầng trên 1 khối đế. Dự án có 1 tầng hầm để xe máy, 1 tầng trung tâm thương mại và 4 tầng nổi để ô tô.'],
+    ['Mật độ xây dựng','20,5%, Quy mô 6 ha'],
+    ['Loại hình sản phẩm','Căn hộ sân vườn, căn hộ cao cấp, căn hộ Duplex (tầng 13 và 33) và căn hộ Penhouse Duplex (tầng 40).'],
+    ['Khởi công','Quý III/2025'],
+    ['Bàn giao','Quý IV/2029'],
+    ['Hình thức sở hữu','Sổ đỏ lâu dài']
+  ];
+  const STATS=[['3','Tòa tháp A · B · C'],['40','Tầng'],['6 ha','Quy mô'],['20,5%','Mật độ xây dựng']];
+  const im=(f,t)=>({src:A+f+'.jpg?v='+VER,thumb:A+'t/'+f+'.jpg?v='+VER,title:t});
+  const INFO=[
+    {key:'layout',label:'Layout căn hộ',items:[
+      im('layout-studio','Studio & 1 phòng ngủ (A2)'),im('layout-1pn','1 phòng ngủ (B)'),
+      im('layout-2pn-a1','2 phòng ngủ (A1)'),im('layout-2pn-b1','2 phòng ngủ (B1)'),im('layout-3pn','3 phòng ngủ (A3)')]},
+    {key:'3d',label:'3D Bóc mái',tall:true,items:[
+      im('3d-studio','Căn hộ Studio · 35,8 – 39,3 m²'),im('3d-1pn','Căn 1 phòng ngủ · 41,9 – 45,2 m²'),
+      im('3d-2pn-a','Căn 2 phòng ngủ A · 60,9 – 65,0 m²'),im('3d-2pn-b','Căn 2 phòng ngủ B · 71,6 – 73,6 m²'),
+      im('3d-3pn-a','Căn 3 phòng ngủ A · 97,0 – 99,5 m²'),im('3d-3pn-b','Căn 3 phòng ngủ B · 89,9 – 91,0 m²')]},
+    {key:'floor',label:'Mặt bằng tầng',items:[
+      im('matbang-a','Mặt bằng tầng điển hình – Tòa A (Arden)'),im('matbang-b','Mặt bằng tầng điển hình – Tòa B (Brighton)'),
+      im('matbang-c','Mặt bằng tầng điển hình – Tòa C (Claremont)')]},
+    {key:'persp',label:'Phối cảnh',items:[
+      im('phoicanh-3toa','Phối cảnh 3 tòa Gamuda Central Park'),im('phoicanh-tongquan','Tổng quan dự án Central Park – Trái tim Gamuda City'),
+      im('phoicanh-poster','Central Park – Bộ sưu tập tinh hoa giữa lòng đại công viên'),
+      im('phoicanh-facade','Phối cảnh mặt tiền tòa nhà (Facade)'),im('phoicanh-outdoorpool','Bể bơi ngoài trời (Outdoor swimming pool)'),
+      im('phoicanh-indoorpool','Bể bơi trong nhà (Indoor pool)'),im('phoicanh-lobby','Sảnh Lobby Brighton'),
+      im('phoicanh-studypod','Phòng học cá nhân (Private study pod)'),im('phoicanh-birdnest','Sân chơi tổ chim (Bird\'s nest playground)'),
+      im('phoicanh-playground1','Khu vui chơi trẻ em (1)'),im('phoicanh-playground2','Khu vui chơi trẻ em – Kids Playground (2)')]},
+    {key:'amen',label:'Bản đồ tiện ích',items:[
+      im('tienich-gmd','Bản đồ tiện ích Gamuda Central Park'),im('tienich-central','Bản đồ tiện ích Central Park'),
+      im('tienich-noikhu','Bản đồ tiện ích nội khu'),
+      im('tienich-khuvuc','Bản đồ khu vực'),im('tienich-metro','Bản đồ metro'),
+      im('tienich-vung','Bản đồ liên kết vùng'),im('tienich-tamdiem','Tâm điểm kết nối phía Nam Hà Nội')]}
+  ];
+  const PROGRESS_VIDEO={src:'assets/video/tien-do.mp4?v='+VER,poster:'assets/video/tien-do.jpg?v='+VER};
+
+  const panel=$('#panel'),pBody=$('#panelBody'),pTabs=$('#panelTabs'),pTitle=$('#panelTitle');
+  let lastFocus=null;
+  const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;};
+
+  function gallery(items,note,tall){
+    const wrap=document.createElement('div');
+    const g=el('div','grid'+(tall?' tall':''));
+    items.forEach((it,i)=>{
+      const b=el('button','gcard');b.type='button';
+      const img=document.createElement('img');img.src=it.thumb;img.alt=it.title;img.loading='lazy';img.decoding='async';
+      b.append(img,el('span',null,it.title));
+      b.addEventListener('click',()=>openLb(items,i));
+      g.appendChild(b);
+    });
+    wrap.appendChild(g);
+    if(note)wrap.appendChild(el('p','note2',note));
+    return wrap;
+  }
+  let wasRotating=false,held=false;
+  function hold360(h){
+    if(h===held)return;held=h;
+    if(h){wasRotating=$('#btnRotate').getAttribute('aria-pressed')==='true';viewer.stopAutoRotate();FX.hold(true);}
+    else{FX.hold(false);if(wasRotating)setRotate(true);}
+  }
+  function openPanel(kind){
+    lastFocus=document.activeElement;hold360(true);
+    pBody.replaceChildren();pTabs.replaceChildren();pTabs.hidden=true;pBody.scrollTop=0;
+    if(kind==='overview'){
+      pTitle.textContent='Tổng quan dự án';
+      const st=el('div','stats');
+      STATS.forEach(([n,t])=>{const d=el('div','stat');d.append(el('b',null,n),el('span',null,t));st.appendChild(d);});
+      const kv=el('dl','kv');
+      OVERVIEW.forEach(([k,v])=>{const r=el('div');r.append(el('dt',null,k),el('dd',null,v));kv.appendChild(r);});
+      pBody.append(st,kv);
+    }else if(kind==='info'){
+      pTitle.textContent='Thông tin dự án';
+      pTabs.hidden=false;
+      const show=k=>{
+        [...pTabs.children].forEach(b=>b.setAttribute('aria-selected',b.dataset.k===k));
+        const g=INFO.find(x=>x.key===k);
+        pBody.replaceChildren(gallery(g.items,null,g.tall));
+        pBody.scrollTop=0;
+      };
+      INFO.forEach(g=>{const b=el('button',null,g.label);b.type='button';b.dataset.k=g.key;b.setAttribute('role','tab');
+        b.addEventListener('click',()=>show(g.key));pTabs.appendChild(b);});
+      show('layout');
+    }else{
+      pTitle.textContent='Tiến độ xây dựng';
+      const v=document.createElement('video');
+      v.className='vid';v.controls=true;v.playsInline=true;v.preload='metadata';
+      v.poster=PROGRESS_VIDEO.poster;v.src=PROGRESS_VIDEO.src;
+      v.addEventListener('play',()=>{if(!bgm.paused)bgm.pause();});   // tắt nhạc nền khi video phát tiếng
+      pBody.append(el('p','sub','Cập nhật tiến độ Gamuda Central Park · Tháng 11/2026'),v);
+      const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{});
+    }
+    panel.hidden=false;
+    $('#panelClose').focus();
+  }
+  function closePanel(){panel.hidden=true;hold360(false);
+    const vv=pBody.querySelector('video');if(vv){vv.pause();vv.removeAttribute('src');vv.load();}
+    if($('#btnMusic').getAttribute('aria-pressed')==='true'&&bgm.paused){const q=bgm.play();if(q&&q.catch)q.catch(()=>{});}
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();}
+  document.querySelectorAll('[data-panel]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.panel)));
+  $('#panelClose').addEventListener('click',closePanel);
+  panel.addEventListener('click',e=>{if(e.target===panel)closePanel();});
+
+  // lightbox
+  const lb=$('#lb'),lbImg=$('#lbImg'),lbStage=$('#lbStage');
+  let lbItems=[],lbIdx=0;
+  function showLb(){
+    const it=lbItems[lbIdx];
+    lbStage.classList.remove('zoom');lbStage.scrollTop=0;lbStage.scrollLeft=0;
+    lbImg.src=it.src;lbImg.alt=it.title;
+    $('#lbCap').textContent=it.title;$('#lbCnt').textContent=(lbIdx+1)+' / '+lbItems.length;
+    const multi=lbItems.length>1;$('#lbPrev').hidden=!multi;$('#lbNext').hidden=!multi;
+  }
+  function openLb(items,i){lbItems=items;lbIdx=i;lb.hidden=false;showLb();$('#lbClose').focus();}
+  function stepLb(d){lbIdx=(lbIdx+d+lbItems.length)%lbItems.length;showLb();}
+  $('#lbPrev').addEventListener('click',()=>stepLb(-1));
+  $('#lbNext').addEventListener('click',()=>stepLb(1));
+  $('#lbClose').addEventListener('click',()=>{lb.hidden=true;});
+  lbImg.addEventListener('click',()=>lbStage.classList.toggle('zoom'));
+  let tx=null;
+  lbStage.addEventListener('touchstart',e=>{tx=e.touches.length===1?e.touches[0].clientX:null;},{passive:true});
+  lbStage.addEventListener('touchend',e=>{
+    if(tx==null||lbStage.classList.contains('zoom'))return;
+    const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>60)stepLb(dx<0?1:-1);tx=null;
+  });
+  document.addEventListener('keydown',e=>{
+    if(!lb.hidden){
+      if(e.key==='Escape')lb.hidden=true;
+      else if(e.key==='ArrowLeft')stepLb(-1);else if(e.key==='ArrowRight')stepLb(1);
+    }else if(!panel.hidden&&e.key==='Escape')closePanel();
+  });
+
+
+  // ---- intro ----
+  const intro=$('#intro');
+  let started=false;
+  function start(){
+    if(started)return;started=true;
+    intro.classList.add('gone');
+    setMusic(true);
+    viewer.lookAt(PLAN.pitch,PLAN.yaw,PLAN.hfov,2200);
+    setTimeout(()=>{setRotate(true);},2600);
+  }
+  $('#btnStart').addEventListener('click',start);
+  if(innerWidth<1200||innerHeight<700)$('#legend').removeAttribute('open');
+})();
+</script>
+</body>
+</html>
